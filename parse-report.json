@@ -1,0 +1,14 @@
+{
+  "sourcePdf": "D:\\ccs\\CTF\\数据安全\\数据安全题库模拟练习\\48dfbf7cad45d0f4.pdf",
+  "rawQuestionMarkers": 1806,
+  "parsedQuestions": 1806,
+  "maxQuestionId": 1806,
+  "typeCounts": {
+    "single": 1036,
+    "judge": 342,
+    "multi": 428
+  },
+  "missingQuestionIds": [],
+  "errorCount": 0,
+  "errors": []
+}
