@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>数据安全题库模拟练习</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">江苏省第四届数据安全技术应用职业技能竞赛</p>
+          <h1>数据安全题库模拟练习</h1>
+        </div>
+        <div class="summary-pill" id="bankSummary">题库加载中</div>
+      </header>
+
+      <section class="panel setup" id="setupPanel">
+        <div class="section-head">
+          <h2>抽题设置</h2>
+          <p>按题型随机组卷，提交每题后立即判定。</p>
+        </div>
+        <div class="type-grid">
+          <label class="type-control">
+            <span>单选题</span>
+            <select id="singleCount"></select>
+          </label>
+          <label class="type-control">
+            <span>多选题</span>
+            <select id="multiCount"></select>
+          </label>
+          <label class="type-control">
+            <span>判断题</span>
+            <select id="judgeCount"></select>
+          </label>
+        </div>
+        <div class="actions">
+          <button class="primary" id="startBtn" type="button" disabled>开始模拟</button>
+          <button class="ghost" id="reloadBtn" type="button">重新加载题库</button>
+        </div>
+        <p class="notice" id="setupNotice"></p>
+      </section>
+
+      <section class="quiz hidden" id="quizPanel">
+        <nav class="tabs" aria-label="题型切换">
+          <button class="tab active" data-type="single" type="button">单选</button>
+          <button class="tab" data-type="multi" type="button">多选</button>
+          <button class="tab" data-type="judge" type="button">判断</button>
+        </nav>
+        <div class="progress-row">
+          <div>
+            <strong id="currentPartLabel">单选题</strong>
+            <span id="partProgress">0 / 0</span>
+          </div>
+          <div id="scoreBadge">正确 0 / 0</div>
+        </div>
+        <div id="questionList" class="question-list"></div>
+        <div class="actions quiz-actions">
+          <button class="ghost" id="backSetupBtn" type="button">返回设置</button>
+          <button class="primary" id="finishBtn" type="button" disabled>全部答完后交卷</button>
+        </div>
+      </section>
+
+      <section class="panel result hidden" id="resultPanel">
+        <div class="section-head">
+          <h2>练习结果</h2>
+          <p id="resultLine">本次练习统计</p>
+        </div>
+        <div class="result-grid" id="resultGrid"></div>
+        <div class="actions">
+          <button class="primary" id="retryBtn" type="button">重新随机练习</button>
+          <button class="ghost" id="wrongBtn" type="button">查看错题</button>
+          <button class="ghost" id="resultSetupBtn" type="button">重新设置</button>
+        </div>
+      </section>
+
+      <section class="panel wrong hidden" id="wrongPanel">
+        <div class="section-head">
+          <h2>错题回顾</h2>
+          <p id="wrongLine">暂无错题</p>
+        </div>
+        <div id="wrongList" class="question-list"></div>
+      </section>
+
+      <section class="panel history" id="historyPanel">
+        <div class="section-head">
+          <h2>练习历史</h2>
+          <p>最近 12 次交卷结果趋势</p>
+        </div>
+        <div class="history-layout">
+          <div class="history-chart" id="historyChart"></div>
+          <div class="history-list" id="historyList"></div>
+        </div>
+        <div class="actions">
+          <button class="ghost" id="clearHistoryBtn" type="button">清空历史</button>
+        </div>
+      </section>
+    </main>
+    <script src="./questions-data.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
