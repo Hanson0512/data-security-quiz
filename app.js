@@ -14,11 +14,14 @@ const state = {
   answers: new Map(),
   activeType: "single",
   history: [],
+  mode: "mock",
+  breakthrough: { topics: [], questions: [], activeTopicId: "" },
 };
 
 const els = {
   bankSummary: document.querySelector("#bankSummary"),
   setupPanel: document.querySelector("#setupPanel"),
+  breakthroughPanel: document.querySelector("#breakthroughPanel"),
   quizPanel: document.querySelector("#quizPanel"),
   resultPanel: document.querySelector("#resultPanel"),
   wrongPanel: document.querySelector("#wrongPanel"),
@@ -45,6 +48,14 @@ const els = {
   historyChart: document.querySelector("#historyChart"),
   historyList: document.querySelector("#historyList"),
   clearHistoryBtn: document.querySelector("#clearHistoryBtn"),
+  modeBtns: [...document.querySelectorAll(".mode-btn")],
+  breakthroughSummary: document.querySelector("#breakthroughSummary"),
+  topicList: document.querySelector("#topicList"),
+  topicTitle: document.querySelector("#topicTitle"),
+  topicMeta: document.querySelector("#topicMeta"),
+  topicCards: document.querySelector("#topicCards"),
+  breakthroughCount: document.querySelector("#breakthroughCount"),
+  startBreakthroughBtn: document.querySelector("#startBreakthroughBtn"),
   tabs: [...document.querySelectorAll(".tab")],
 };
 
@@ -91,6 +102,83 @@ async function loadHistory() {
   renderHistory();
 }
 
+function loadBreakthrough() {
+  if (!window.BREAKTHROUGH_DATA) {
+    els.breakthroughSummary.textContent = "专项数据加载失败";
+    return;
+  }
+  state.breakthrough.topics = window.BREAKTHROUGH_DATA.topics || [];
+  state.breakthrough.questions = window.BREAKTHROUGH_DATA.questions || [];
+  const firstWithQuestions = state.breakthrough.topics.find((topic) => topic.questionCount > 0) || state.breakthrough.topics[0];
+  state.breakthrough.activeTopicId = firstWithQuestions?.id || "";
+  els.breakthroughSummary.textContent = `共 ${state.breakthrough.topics.length} 个专题，${state.breakthrough.questions.length} 道易错题`;
+  renderTopics();
+}
+
+function switchMode(mode) {
+  els.modeBtns.forEach((button) => button.classList.toggle("active", button.dataset.mode === mode));
+  showPanel(mode);
+}
+
+function renderTopics() {
+  els.topicList.innerHTML = "";
+  state.breakthrough.topics.forEach((topic) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "topic-btn";
+    button.classList.toggle("active", topic.id === state.breakthrough.activeTopicId);
+    button.innerHTML = `<span>${escapeHtml(topic.title)}</span><strong>${topic.questionCount || 0}</strong>`;
+    button.addEventListener("click", () => {
+      state.breakthrough.activeTopicId = topic.id;
+      renderTopics();
+      renderTopicDetail();
+    });
+    els.topicList.appendChild(button);
+  });
+  renderTopicDetail();
+}
+
+function renderTopicDetail() {
+  const topic = getActiveTopic();
+  if (!topic) return;
+  const questions = getActiveBreakthroughQuestions();
+  els.topicTitle.textContent = topic.title;
+  els.topicMeta.textContent = `${questions.length} 道易错题，${topic.cards.length} 组重点卡片`;
+  els.startBreakthroughBtn.disabled = questions.length === 0;
+  els.topicCards.innerHTML = "";
+  if (!topic.cards.length) {
+    els.topicCards.innerHTML = '<p class="empty">该专题暂无单独总结卡片，可直接进行易错题练习。</p>';
+    return;
+  }
+  topic.cards.slice(0, 8).forEach((card) => {
+    els.topicCards.appendChild(renderTopicCard(card));
+  });
+}
+
+function renderTopicCard(card) {
+  const article = document.createElement("article");
+  article.className = "study-card";
+  if (card.kind === "table") {
+    const rows = card.rows
+      .slice(0, 10)
+      .map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`)
+      .join("");
+    article.innerHTML = `<h4>${escapeHtml(card.title)}</h4><div class="study-table"><table>${rows}</table></div>`;
+  } else {
+    const items = card.items.slice(0, 10).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+    article.innerHTML = `<h4>${escapeHtml(card.title)}</h4><ul>${items}</ul>`;
+  }
+  return article;
+}
+
+function getActiveTopic() {
+  return state.breakthrough.topics.find((topic) => topic.id === state.breakthrough.activeTopicId);
+}
+
+function getActiveBreakthroughQuestions() {
+  return state.breakthrough.questions.filter((question) => question.topic === state.breakthrough.activeTopicId);
+}
+
 function saveHistory() {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
 }
@@ -127,6 +215,7 @@ function shuffle(items) {
 }
 
 function startQuiz() {
+  state.mode = "mock";
   state.answers = new Map();
   state.quiz = {
     single: shuffle(state.byType.single).slice(0, Number(els.singleCount.value)),
@@ -144,12 +233,31 @@ function startQuiz() {
   renderActiveQuestions();
 }
 
+function startBreakthroughQuiz() {
+  const topic = getActiveTopic();
+  const source = getActiveBreakthroughQuestions();
+  const count = Math.min(Number(els.breakthroughCount.value), source.length);
+  if (!topic || count === 0) return;
+  state.mode = "breakthrough";
+  state.answers = new Map();
+  const picked = shuffle(source).slice(0, count);
+  state.quiz = {
+    single: picked.filter((question) => question.type === "single"),
+    multi: picked.filter((question) => question.type === "multi"),
+    judge: picked.filter((question) => question.type === "judge"),
+  };
+  state.activeType = firstNonEmptyType();
+  showPanel("quiz");
+  renderTabs();
+  renderActiveQuestions();
+}
+
 function firstNonEmptyType() {
   return ["single", "multi", "judge"].find((type) => state.quiz[type].length > 0) || "single";
 }
 
 function showPanel(name) {
-  ["setup", "quiz", "result", "wrong"].forEach((panel) => {
+  ["setup", "breakthrough", "quiz", "result", "wrong"].forEach((panel) => {
     els[`${panel}Panel`].classList.toggle("hidden", name !== panel);
   });
   els.historyPanel.classList.toggle("hidden", name !== "setup" && name !== "result");
@@ -292,6 +400,8 @@ function submitExam() {
   const record = {
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
     finishedAt: new Date().toISOString(),
+    mode: state.mode,
+    topic: state.mode === "breakthrough" ? getActiveTopic()?.title || "专项突破" : "模拟练习",
     total: stats.total,
     correct: stats.correct,
     rate: stats.total ? Math.round((stats.correct / stats.total) * 100) : 0,
@@ -358,7 +468,7 @@ function renderHistory() {
       row.innerHTML = `
         <span>${formatTime(item.finishedAt)}</span>
         <strong>${item.rate}%</strong>
-        <span>${item.correct} / ${item.total}</span>
+        <span>${escapeHtml(item.topic || (item.mode === "breakthrough" ? "专项突破" : "模拟练习"))} ${item.correct} / ${item.total}</span>
       `;
       els.historyList.appendChild(row);
     });
@@ -397,6 +507,10 @@ els.retryBtn.addEventListener("click", startQuiz);
 els.wrongBtn.addEventListener("click", showWrongQuestions);
 els.resultSetupBtn.addEventListener("click", () => showPanel("setup"));
 els.clearHistoryBtn.addEventListener("click", clearHistory);
+els.startBreakthroughBtn.addEventListener("click", startBreakthroughQuiz);
+els.modeBtns.forEach((button) => {
+  button.addEventListener("click", () => switchMode(button.dataset.mode));
+});
 els.tabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     state.activeType = tab.dataset.type;
@@ -407,3 +521,4 @@ els.tabs.forEach((tab) => {
 
 loadBank();
 loadHistory();
+loadBreakthrough();
