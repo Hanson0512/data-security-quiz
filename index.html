@@ -16,6 +16,11 @@
         <div class="summary-pill" id="bankSummary">题库加载中</div>
       </header>
 
+      <nav class="mode-switch" aria-label="练习模式">
+        <button class="mode-btn active" data-mode="setup" type="button">模拟练习</button>
+        <button class="mode-btn" data-mode="breakthrough" type="button">专项突破</button>
+      </nav>
+
       <section class="panel setup" id="setupPanel">
         <div class="section-head">
           <h2>抽题设置</h2>
@@ -40,6 +45,36 @@
           <button class="ghost" id="reloadBtn" type="button">重新加载题库</button>
         </div>
         <p class="notice" id="setupNotice"></p>
+      </section>
+
+      <section class="panel breakthrough hidden" id="breakthroughPanel">
+        <div class="section-head">
+          <h2>重难点 / 易错突破</h2>
+          <p id="breakthroughSummary">专项数据加载中</p>
+        </div>
+        <div class="breakthrough-layout">
+          <aside class="topic-list" id="topicList"></aside>
+          <div class="topic-detail">
+            <div class="topic-toolbar">
+              <div>
+                <h3 id="topicTitle">选择专题</h3>
+                <p id="topicMeta">查看重点卡片并开始易错专项练习。</p>
+              </div>
+              <label class="mini-control">
+                <span>抽题数量</span>
+                <select id="breakthroughCount">
+                  <option value="10">10 题</option>
+                  <option value="20">20 题</option>
+                  <option value="50" selected>50 题</option>
+                </select>
+              </label>
+            </div>
+            <div id="topicCards" class="topic-cards"></div>
+            <div class="actions">
+              <button class="primary" id="startBreakthroughBtn" type="button" disabled>开始专项练习</button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section class="quiz hidden" id="quizPanel">
@@ -98,6 +133,7 @@
       </section>
     </main>
     <script src="./questions-data.js"></script>
+    <script src="./breakthrough-data.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>
