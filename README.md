@@ -5,6 +5,8 @@
 ## 功能
 
 - 按单选题、多选题、判断题分区练习。
+- 提供“模拟练习”和“专项突破”两种模式。
+- 专项突破按重难点专题展示知识卡片，并从易错题集合中抽题练习。
 - 每个题型可选择抽题数量，包括 10、20、50、100 或全部。
 - 每题提交后立即显示是否正确和正确答案。
 - 需要全部题目提交后才能交卷查看成绩。
@@ -19,9 +21,12 @@
 - `./48dfbf7cad45d0f4.pdf`：题库来源 PDF。
 - `./questions.json`：结构化题库数据。
 - `./questions-data.js`：用于直接打开网页时加载题库。
+- `./breakthrough.json`：专项突破知识卡片和易错题数据。
+- `./breakthrough-data.js`：用于直接打开网页时加载专项突破数据。
 - `./history.json`：历史记录初始文件。
 - `./parse-report.json`：题库解析报告。
 - `./tools/extract_questions.py`：从 PDF 重新生成题库的脚本。
+- `./tools/build_breakthrough_data.py`：从复习资料生成专项突破数据的脚本。
 
 ## 使用方式
 
@@ -55,6 +60,21 @@ http://localhost:8000/
 - 判断题：342
 - 解析异常：0
 
+## 专项突破
+
+专项突破数据由复习总结和已标注答案的易错题资料生成，页面中按专题展示：
+
+- 法律法规与合规罚则
+- 个人信息、隐私与跨境
+- 访问控制、身份认证与零信任
+- 等保、关基、数据安全治理
+- 网络、无线与物联网
+- 数据库、大数据、备份与云安全
+- 区块链与密码学
+- 攻防、取证、供应链与 APP 检测
+
+专项练习同样要求全部答完后才能交卷，交卷记录会进入练习历史。
+
 ## 重新生成题库
 
 在项目根目录运行：
@@ -68,6 +88,17 @@ python .\tools\extract_questions.py
 - `./questions.json`
 - `./questions-data.js`
 - `./parse-report.json`
+
+生成专项突破数据：
+
+```powershell
+python .\tools\build_breakthrough_data.py
+```
+
+脚本会覆盖生成：
+
+- `./breakthrough.json`
+- `./breakthrough-data.js`
 
 题库 JSON 字段包括：
 
